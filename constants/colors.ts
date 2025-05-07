@@ -1,0 +1,17 @@
+export default {
+  primary: "#3563E9",
+  secondary: "#54A6FF",
+  accent: "#FF4C30",
+  background: "#F8FAFC",
+  card: "#FFFFFF",
+  text: "#1A202C",
+  textSecondary: "#596780",
+  border: "#E2E8F0",
+  success: "#34D399",
+  error: "#F87171",
+  warning: "#FBBF24",
+  info: "#60A5FA",
+  disabled: "#CBD5E1",
+  shadow: "rgba(0, 0, 0, 0.1)",
+  primaryLight: "#EBF2FF",
+};
