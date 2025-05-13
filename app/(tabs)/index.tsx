@@ -16,13 +16,16 @@ import { getCurrentUser } from "@/mocks/users";
 import CarCard from "@/components/CarCard";
 import CategoryCard from "@/components/CategoryCard";
 import { useAuthStore } from "@/store/auth-store";
+import { Car } from "@/types/car";
+import { User } from "@/types/user";
+import api, { endpoints } from "@/services/api";
 
 export default function HomeScreen() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
-  const [popularCars, setPopularCars] = useState([]);
-  const [recommendedCars, setRecommendedCars] = useState([]);
-  const user = getCurrentUser();
+  const [popularCars, setPopularCars] = useState<Car[]>([]);
+  const [recommendedCars, setRecommendedCars] = useState<Car[]>([]);
+  const [user, setUser] = useState<User | null>(null); // Adaugă un state pentru utilizator
 
   useEffect(() => {
     // Check if user is authenticated
@@ -31,6 +34,18 @@ export default function HomeScreen() {
       return;
     }
 
+    const fetchUserData = async () => {
+      try {
+        const fetchedUser = await api.get(endpoints.users.current);  
+        setUser(fetchedUser.data); 
+      } catch (error) {
+        console.error("Eroare la încărcarea utilizatorului:", error);
+      }
+    };
+
+    fetchUserData();
+    console.log("User data:", user);
+    
     // Load cars
     setPopularCars(getPopularCars());
     setRecommendedCars(getRecommendedCars());
@@ -40,7 +55,7 @@ export default function HomeScreen() {
     router.push("/(tabs)/search");
   };
 
-  const handleSeeAllPress = (type) => {
+  const handleSeeAllPress = (type: string) => {
     try {
       router.push(`/cars?section=${type}`);
     } catch (error) {
@@ -56,7 +71,7 @@ export default function HomeScreen() {
     }
   };
 
-  const handleCategoryPress = (id) => {
+  const handleCategoryPress = (id: string) => {
     try {
       router.push(`/cars?type=${id}`);
     } catch (error) {
@@ -73,15 +88,15 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Hello, {user.name.split(" ")[0]}</Text>
+          <Text style={styles.greeting}>Hello, {user?.name}</Text>
           <View style={styles.locationContainer}>
             <MapPin size={16} color={Colors.primary} />
-            <Text style={styles.location}>{user.city}</Text>
+            <Text style={styles.location}>{user?.city}</Text>
           </View>
         </View>
         <TouchableOpacity onPress={() => router.push("/(tabs)/profile")}>
           <Image
-            source={{ uri: user.avatar }}
+            source={{ uri: user?.avatar }}
             style={styles.avatar}
             contentFit="cover"
           />

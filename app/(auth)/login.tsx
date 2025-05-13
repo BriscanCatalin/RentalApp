@@ -20,8 +20,8 @@ import { useAuthStore } from "@/store/auth-store";
 export default function LoginScreen() {
   const router = useRouter();
   const { login, isLoading, error, isAuthenticated } = useAuthStore();
-  const [email, setEmail] = useState("demo@example.com");
-  const [password, setPassword] = useState("password");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [validationError, setValidationError] = useState("");
 

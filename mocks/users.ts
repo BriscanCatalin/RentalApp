@@ -1,4 +1,5 @@
 import { User } from "@/types/user";
+import api from "@/services/api";
 
 export const users: User[] = [
   {
@@ -16,6 +17,7 @@ export const users: User[] = [
   }
 ];
 
-export const getCurrentUser = (): User => {
-  return users[0];
+export const getCurrentUser = async (): Promise<User> => {
+  const res = await api.get("/users/current");
+  return res.data;
 };

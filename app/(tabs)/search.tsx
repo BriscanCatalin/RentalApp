@@ -59,7 +59,7 @@ export default function SearchScreen() {
     }
   };
 
-  const handleCategoryPress = (id) => {
+  const handleCategoryPress = (id : any) => {
     try {
       router.push(`/cars?type=${id}`);
     } catch (error) {
@@ -67,7 +67,7 @@ export default function SearchScreen() {
     }
   };
 
-  const handleRecentSearchPress = (search) => {
+  const handleRecentSearchPress = (search : string) => {
     setSearchQuery(search);
     
     // Navigate to results

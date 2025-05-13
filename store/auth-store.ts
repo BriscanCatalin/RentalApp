@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { User } from "@/types/user";
 import { getCurrentUser } from "@/mocks/users";
+import api, { endpoints } from "@/services/api";
 
 interface AuthState {
   user: User | null;
@@ -25,44 +26,77 @@ export const useAuthStore = create<AuthState>()(
       
       login: async (email, password) => {
         set({ isLoading: true, error: null });
-        
+      
         try {
-          // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          const response = await api.post(endpoints.auth.login, {
+            email,
+            password
+          });
+
+          const access_token = response.data.access_token; 
+          if (access_token) {
+            api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+            await AsyncStorage.setItem("auth-token", access_token);
+            const userRes = await api.get(endpoints.users.current);
+            const userData = userRes.data;
           
-          // In a real app, this would be an API call to validate credentials
-          if (email === "demo@example.com" && password === "password") {
-            const user = getCurrentUser();
-            set({ user, isAuthenticated: true, isLoading: false });
+            set({ 
+              user: userData, 
+              isAuthenticated: true, 
+              isLoading: false 
+            });
             return true;
           } else {
-            set({ error: "Invalid email or password", isLoading: false });
-            return false;
+            throw new Error("Invalid token received.");
           }
-        } catch (error) {
-          set({ error: "Login failed. Please try again.", isLoading: false });
+        } catch (error: any) {
+          const message = error.response?.data?.message || "Login failed.";
+          set({ error: message, isLoading: false });
           return false;
         }
       },
       
       register: async (name, email, password) => {
         set({ isLoading: true, error: null });
-        
+      
         try {
-          // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          // In a real app, this would be an API call to create a new user
-          const user = {
-            ...getCurrentUser(),
+          const response = await api.post(endpoints.auth.register, {
             name,
             email,
-          };
+            password
+          });          
           
-          set({ user, isAuthenticated: true, isLoading: false });
-          return true;
-        } catch (error) {
-          set({ error: "Registration failed. Please try again.", isLoading: false });
+          if (response.status == 201) {
+            const r = await api.post(endpoints.auth.login, {
+              email,
+              password
+            });
+
+            const access_token = r.data;         
+            if (access_token) {
+              await AsyncStorage.setItem("auth-token", access_token);
+              const userRes = await api.get(endpoints.users.current, {
+                headers: {
+                  Authorization: `Bearer ${access_token}`
+                }
+              });
+              const userData = userRes.data;            
+              set({ 
+                user: userData, 
+                isAuthenticated: true, 
+                isLoading: false 
+              });
+              return true;
+            } else {
+              throw new Error("Invalid token received.");
+            }
+          } else {
+            throw new Error("Registration failed.");
+          }
+        } catch (error: any) {
+          console.log("REGISTER ERROR:", error?.response?.data || error);
+          const message = error.response?.data?.message || "Registration failed.";
+          set({ error: message, isLoading: false });
           return false;
         }
       },
@@ -73,20 +107,18 @@ export const useAuthStore = create<AuthState>()(
       
       updateProfile: async (userData) => {
         set({ isLoading: true, error: null });
-        
+      
         try {
-          // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          // In a real app, this would be an API call to update user data
-          set(state => ({
-            user: state.user ? { ...state.user, ...userData } : null,
-            isLoading: false
+          const res = await api.put("/users/current", userData);       
+          set((state) => ({
+            user: res.data ? { ...state.user, ...res.data } : null,
+            isLoading: false,
           }));
-        } catch (error) {
-          set({ error: "Profile update failed. Please try again.", isLoading: false });
+        } catch (error: any) {
+          const message = error.response?.data?.message || "Profile update failed.";
+          set({ error: message, isLoading: false });
         }
-      }
+      }      
     }),
     {
       name: "auth-storage",

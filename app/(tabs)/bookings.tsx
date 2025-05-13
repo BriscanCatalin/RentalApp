@@ -33,7 +33,7 @@ export default function BookingsScreen() {
   };
 
   const handleBrowseCars = () => {
-    router.push("/(tabs)/index");
+    router.push("/(tabs)/search");
   };
 
   return (
